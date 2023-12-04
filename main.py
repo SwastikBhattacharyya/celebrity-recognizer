@@ -42,4 +42,6 @@ if file is not None:
     if prediction['class'] == 'No face detected':
         st.error('No face detected')
     else:
-        st.info(f'Prediction: {prediction['class']}\n\nAccuracy: {prediction['class_probability']}%')
+        prediction_class = prediction['class']
+        probability = prediction['class_probability']
+        st.info(f'Prediction: {prediction_class}\n\nAccuracy: {probability}%')
