@@ -3,10 +3,11 @@ import json
 import numpy as np
 import cv2
 import pywt
+from sklearn.pipeline import Pipeline
 
-model = None
-class_names_to_int = None
-int_to_class_names = None
+model: Pipeline | None = None
+class_names_to_int: dict | None = None
+int_to_class_names: dict | None = None
 
 
 def predict(image):
@@ -19,14 +20,23 @@ def predict(image):
         combined_img = np.vstack((scaled_raw_image.reshape(32 * 32 * 3, 1), scaled_img_har.reshape(32 * 32, 1)))
         len_image_array = 32 * 32 * 3 + 32 * 32
         final = combined_img.reshape(1, len_image_array).astype(float)
+
+        predicted_class = int_to_class_names[model.predict(final)[0]]
+        all_class_probability = np.around(model.predict_proba(final) * 100, 2).tolist()
+        predicted_class_probability = all_class_probability[0][class_names_to_int[predicted_class]]
         result.append(
             {
-                'class': int_to_class_names[model.predict(final)[0]],
-                'class_probability': np.around(model.predict_proba(final) * 100, 2).tolist()[0],
-                'class_dictionary': class_names_to_int,
+                'class': predicted_class,
+                'class_probability': predicted_class_probability,
             }
         )
-    return result
+
+    if len(result) == 0:
+        return {
+            'class': 'No face detected',
+            'class_probability': 0,
+        }
+    return result[0]
 
 
 def load_model():
